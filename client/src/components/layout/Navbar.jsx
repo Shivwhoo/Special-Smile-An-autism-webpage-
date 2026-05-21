@@ -123,8 +123,19 @@ const Navbar = () => {
                 <img src="/logo.png" alt="Special Smile Logo" className="w-10 h-10 object-contain rounded-lg" />
               </div>
 
-              {/* Text logo - pushed right on desktop to make room for the hanging badge */}
-              <span className="font-heading font-bold text-2xl text-text-primary tracking-tight md:ml-4">
+              {/* Text logo - swings with the badge on desktop */}
+              <motion.span
+                className="font-heading font-extrabold text-2xl md:text-3xl text-text-primary tracking-tight md:ml-4 hidden md:inline-block"
+                style={{
+                  rotate: swingRotate,
+                  originX: '0%',
+                  originY: '0%',
+                }}
+              >
+                Special<span className="text-primary">Smile</span>
+              </motion.span>
+              {/* Mobile: static text */}
+              <span className="font-heading font-bold text-2xl text-text-primary tracking-tight md:hidden">
                 Special<span className="text-primary">Smile</span>
               </span>
             </Link>
