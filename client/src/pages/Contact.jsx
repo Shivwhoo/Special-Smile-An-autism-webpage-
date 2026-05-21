@@ -112,7 +112,7 @@ const Contact = () => {
       title: 'Clinic Location',
       details: 'Adarsh Vihar Colony, Gola Road, Patna',
       description: 'Open in Google Maps directly',
-      link: 'https://maps.app.goo.gl/P48Qe5iVSdP3yf8k6'
+      link: 'https://maps.app.goo.gl/uhNhDqbFWW8KvFhX6'
     }
   ];
 

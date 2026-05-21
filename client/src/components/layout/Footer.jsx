@@ -47,7 +47,7 @@ const Footer = () => {
               <li className="flex items-start gap-3 text-sm text-text-secondary">
                 <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <a 
-                  href="https://maps.app.goo.gl/P48Qe5iVSdP3yf8k6" 
+                  href="https://maps.app.goo.gl/uhNhDqbFWW8KvFhX6" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="hover:text-primary transition-colors text-left"

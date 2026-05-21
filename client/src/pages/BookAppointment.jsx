@@ -539,7 +539,7 @@ const BookAppointment = () => {
                 <div className="pb-4 border-b border-border-color">
                   <p className="text-text-muted font-bold text-xs uppercase tracking-wider mb-1">Clinic Address</p>
                   <a 
-                    href="https://maps.app.goo.gl/P48Qe5iVSdP3yf8k6"
+                    href="https://maps.app.goo.gl/uhNhDqbFWW8KvFhX6"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="font-bold text-text-theme flex items-start gap-1.5 hover:text-primary transition-colors cursor-pointer group"
