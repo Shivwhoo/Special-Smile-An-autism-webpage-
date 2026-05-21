@@ -293,6 +293,33 @@ const Contact = () => {
             </form>
           </motion.div>
         </div>
+
+        {/* Embedded Google Maps Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-16"
+        >
+          <div className="text-center mb-8">
+            <h2 className="text-2xl md:text-3xl font-heading font-bold tracking-tight">
+              Find Us on the <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Map</span>
+            </h2>
+            <p className="text-sm text-text-muted mt-2">Visit our clinic at Adarsh Vihar Colony, Gola Road, Patna</p>
+          </div>
+          <div className="bg-surface-theme border border-primary/10 rounded-3xl shadow-xl overflow-hidden p-2 md:p-3">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d57555.35885575073!2d84.97905161648636!3d25.631157269794215!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39ed57ee9d8a4747%3A0xe335d5073a9232dd!2sSpecial%20Smile!5e0!3m2!1sen!2sin!4v1779382242291!5m2!1sen!2sin"
+              className="w-full rounded-2xl"
+              style={{ border: 0, height: '400px' }}
+              allowFullScreen=""
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title="Special Smile Center - Google Maps Location"
+            ></iframe>
+          </div>
+        </motion.div>
+
       </div>
     </div>
   );
