@@ -14,8 +14,9 @@ dotenv.config();
 const app = express();
 
 // Middleware
+const clientOrigin = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/+$/, '');
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: clientOrigin,
   credentials: true
 }));
 app.use(express.json());
