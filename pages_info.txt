@@ -1,0 +1,85 @@
+SPECIAL SMILE CENTER - CLIENT PAGES ARCHITECTURE SUMMARY
+=========================================================
+
+Below is a detailed overview of the 10 core JSX page files located under the "client/src/pages/" directory, which drive the routing and user experience of the Special Smile web application.
+
+1. Home.jsx (Landing Page)
+--------------------------
+- Purpose: The primary landing page for the clinic.
+- Features: 
+  * Sleek hero section with a primary CTA leading to consultation scheduling.
+  * Overview of the clinic's specialized developmental therapies.
+  * Integrated introduction of Dr. Lovely Priya (Lead Consultant & Founder) using her verified portrait image ("/image.png") and rating statistics.
+  * Informational layout on developmental milestones and parent testimonials.
+
+2. Services.jsx (Therapies & Offerings)
+---------------------------------------
+- Purpose: Showcases all therapeutic specializations offered.
+- Features:
+  * Lists clinical details for: Special Education, Behavioral Therapy, Occupational Therapy, Speech & Language Therapy, Sensory Integration, Counseling, and Social Skills.
+  * Provides a completely fee-free layout (all payment summaries removed).
+  * Specifies session timings with a clean "(tentative)" suffix to manage schedules flexibly.
+
+3. Mentor.jsx (About Dr. Lovely Priya)
+--------------------------------------
+- Purpose: Dedicated professional bio page for the founder.
+- Features:
+  * Renders Dr. Lovely Priya's professional portrait ("/image.png").
+  * Outlines her unique medical background (B.D.S.) combined with special education qualifications.
+  * Displays a custom milestone statistic: "Through my own experience" under her portrait.
+  * Renders educational credentials, core philosophy ("My Approach"), and operational hours.
+
+4. BookAppointment.jsx (Interactive Appointment Scheduler)
+---------------------------------------------------------
+- Purpose: Highly functional, interactive page for authenticated users to book sessions.
+- Features:
+  * Custom Month-switching Grid Calendar: Highlights current date, renders weekdays, and disables past dates.
+  * Live Slot Query: Selecting a date queries the server "/api/appointments/booked-slots?date=YYYY-MM-DD" dynamically.
+  * Available Slot Selection: Renders active timings as interactive pills, disabling already booked slots to prevent double-bookings.
+  * Direct Confirmation Flow: Clean summary cards showing therapist, Patna center location, and session time. Bypasses all payment gateways, saving events directly into MongoDB and Google Calendar.
+
+5. Dashboard.jsx (Parent & Patient Portal)
+------------------------------------------
+- Purpose: Protected portal for parents to view and manage active bookings.
+- Features:
+  * Fetches and presents a chronological list of active, pending, or past appointments.
+  * Shows booking parameters (date, slot, child name, and status).
+  * Displays warning notices if Google Calendar service accounts are unconfigured, while retaining local clinic booking features.
+
+6. Login.jsx (Parent Authentication Portal)
+-------------------------------------------
+- Purpose: Allows registered parents to log in securely.
+- Features:
+  * Form fields for email and password.
+  * Connects to the Redux authentication slice to dispatch secure login states and handles secure cookie-based session responses.
+
+7. Register.jsx (Onboarding & Registration)
+-------------------------------------------
+- Purpose: New account onboarding flow for parents.
+- Features:
+  * Onboards parent contact details (name, email, phone) alongside child information.
+  * Implements smooth validation feedback and redirects to the Booking Portal upon successful creation.
+
+8. Contact.jsx (Support & Center Locations)
+-------------------------------------------
+- Purpose: Complete contact portal for Special Smile Center.
+- Features:
+  * Address: Adarsh Vihar Colony, Lane No. 1, T-Point, Gola Road, Patna, Bihar.
+  * Real interactive Google Maps iframe pinpointing the Patna center.
+  * Clickable redirection link that jumps directly to Google Maps navigation (maps.app.goo.gl/P48Qe5iVSdP3yf8k6).
+  * Integrated contact triggers: "tel:" and "mailto:" (jaylovelypriya@gmail.com) links.
+  * Stylized layout containing an on-page email inquiry form.
+
+9. ComingSoon.jsx (Feature Placeholders)
+----------------------------------------
+- Purpose: Reusable placeholder component for upcoming sections.
+- Features:
+  * Rendered dynamically for: "About Us", "FAQs", "Parent Resources", "Privacy Policy", and "Terms of Service".
+  * Displays a gorgeous high-contrast coming soon animation with secondary navigation prompts.
+
+10. NotFound.jsx (404 Error Catch-all)
+--------------------------------------
+- Purpose: Fallback page for unmatched web requests.
+- Features:
+  * Displays an engaging, parent-friendly error card informing them the page does not exist.
+  * Renders a clean home action button to redirect them back to the active web layout.

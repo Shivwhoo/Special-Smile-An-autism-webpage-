@@ -1,0 +1,84 @@
+SPECIAL SMILE CENTER - FULL CODESPACE CONTEXT SUMMARY
+======================================================
+
+This document outlines the complete system architecture, folder structure, API backend mappings, database schemas, and integrated service configurations that form the Special Smile Center application ecosystem.
+
+1. System Overview
+------------------
+Special Smile is a full-stack web application designed to support parent-clinician onboarding and session scheduling.
+- Frontend: Single Page Application (SPA) built with React, Redux Toolkit (state management), framer-motion (animations), and TailwindCSS (styling), powered by Vite.
+- Backend: RESTful API server powered by Node.js, Express, and Mongoose (MongoDB ODM).
+- Third-Party Integrations:
+  * Google Calendar API: Automated headless server-to-server appointment event synchronization.
+  * Resend Email API: Automated transaction validation and support notification emails.
+
+2. Directory Layout & Architecture
+----------------------------------
+
+[WORKSPACE ROOT] (c:\Users\shiva\Desktop\Autism)
+│
+├── pages_info.txt          # Summary of client/src/pages JSX pages
+├── context.txt             # Complete workspace architecture context (This File)
+│
+├── client/                 # Frontend React Application
+│   ├── index.html          # HTML Entrypoint (Serves favicon.png pointing to logo.png)
+│   ├── vite.config.js      # Build configurations
+│   ├── public/             # Static Assets (Served relative to root "/")
+│   │   ├── logo.png        # Clinic Branding Logo
+│   │   ├── image.png       # Dr. Lovely Priya's professional portrait
+│   │   └── favicon.svg     # Legacy browser icon
+│   └── src/
+│       ├── main.jsx        # Mounts App inside Redux, Router, and StrictMode wrappers
+│       ├── App.jsx         # Defines router boundaries, ScrollToTop handlers, and layouts
+│       ├── index.css       # Core stylesheets and variables
+│       ├── components/     # Layout-wide Reusable Components
+│       │   ├── layout/
+│       │   │   ├── Layout.jsx           # Core page layout wraps Navbar, Outlet, Footer, & back-to-top
+│       │   │   ├── Navbar.jsx           # Global sticky navbar rendering the logo.png branding
+│       │   │   ├── Footer.jsx           # Unified footer with active location maps and LinkedIn credit
+│       │   │   ├── ScrollToTop.jsx      # Automates top scroll reset on route changes
+│       │   │   └── ScrollToTopButton.jsx# Dynamic glassmorphic floating back-to-top button
+│       │   └── routing/
+│       │       └── ProtectedRoute.jsx   # Restricts child booking/dashboards to logged-in sessions
+│       ├── pages/          # The 10 distinct React page files (detailed in pages_info.txt)
+│       └── store/          # Redux Toolkit global stores (Auth states & slice configurations)
+│
+└── server/                 # Backend Node-Express Application
+    ├── index.js            # Main Express entrypoint (initializes middlewares, routers, & port listeners)
+    ├── .env                # Environmental keys (Database tokens, API credentials, Google private keys)
+    ├── config/
+    │   └── db.js           # Mongoose MongoDB connection pooling logic
+    ├── middleware/
+    │   └── auth.js         # JWT cookie validator protecting secured routes
+    ├── models/
+    │   ├── User.js         # User model (names, roles, encrypted passwords)
+    │   └── Appointment.js  # Booking model (date, slot, child name, Google Calendar Event ID)
+    ├── routes/
+    │   ├── authRoutes.js   # Registers registration, login, logout, and token checks
+    │   └── appointmentRoutes.js # Handles schedule posts and date timeslot availability queries
+    ├── controllers/
+    │   ├── authController.js   # Handles registration, login hashes, and HTTP-only cookie JWTs
+    │   └── appointmentController.js # Prevents double-booking and processes server-side schedulers
+    └── utils/
+        ├── googleCalendar.js   # JWT service auth client producing automated Google Calendar events
+        └── sendEmail.js        # Resend SMTP engine formatting parent and clinic confirmations
+
+3. Core Integrations & Workflows
+--------------------------------
+
+A. Booking & Availability Engine:
+1. When a parent clicks on a date in the custom calendar grid ("BookAppointment.jsx"), the client queries "GET /api/appointments/booked-slots?date=YYYY-MM-DD".
+2. The controller ("appointmentController.js") fetches confirmed slots on that specific day and returns them to the frontend.
+3. The calendar disables occupied slots on the interface.
+4. On submission, the backend checks for conflicts (double-booking protection) and inserts a "confirmed" entry.
+
+B. Headless Google Calendar Sync:
+- Authentication: The backend authenticates server-to-server using a Google Cloud Service Account JWT.
+- API Call: Utilizing the "googleapis" SDK, it calls "calendar.events.insert" using the correct "requestBody" parameters to prevent SDK errors.
+- Sync: Automatically schedules the appointment in the clinic's administrative calendar (within the "Asia/Kolkata" timezone) and assigns the resulting Google Event ID to Mongoose.
+- Fallback: Bypasses sync gracefully with console logs if service keys are unconfigured, ensuring the local database is still updated successfully.
+
+C. Transactional Emails:
+- Instantly sends beautifully styled HTML confirmations to:
+  * The parent's registered email.
+  * The administrative clinic inbox ("jaylovelypriya@gmail.com").
