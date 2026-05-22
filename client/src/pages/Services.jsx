@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Clock, ArrowRight, Brain, HeartPulse, Sparkles, MessageSquare, Palette, Smile, Users, Activity, GraduationCap, Info } from 'lucide-react';
 import api from '../api/axios';
-import { useSelector } from 'react-redux';
+
 
 const mockServices = [
   {
@@ -83,7 +83,7 @@ const mockServices = [
 const Services = () => {
   const [services, setServices] = useState(mockServices);
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const { user } = useSelector((state) => state.auth);
+
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -203,7 +203,7 @@ const Services = () => {
                     </div>
                     
                     <Link 
-                      to={user ? `/book?service=${service._id}` : `/register?service=${service._id}`} 
+                      to={`/book?service=${service._id}`} 
                       className="w-full sm:w-auto btn-secondary text-sm inline-flex items-center justify-center gap-2 shadow-md group-hover:scale-105 transition-all duration-300"
                     >
                       Book Now <ArrowRight className="w-4 h-4" />

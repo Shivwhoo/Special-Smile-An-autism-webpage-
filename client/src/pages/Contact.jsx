@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import { Mail, Phone, MapPin, Send, Mic, MicOff, ExternalLink, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
@@ -7,11 +6,10 @@ import { toast } from 'sonner';
 import api from '../api/axios';
 
 const Contact = () => {
-  const { user } = useSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
+    name: '',
+    email: '',
     subject: '',
     message: ''
   });
@@ -78,9 +76,7 @@ const Contact = () => {
     
     try {
       const dataToSend = {
-        ...formData,
-        email: user ? user.email : formData.email,
-        name: user ? user.name : formData.name
+        ...formData
       };
       await api.post('/contact', dataToSend);
       toast.success('Message sent successfully! We will get back to you soon.');
@@ -204,23 +200,21 @@ const Contact = () => {
                     placeholder="Enter your name"
                   />
                 </div>
-                {!user && (
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-semibold text-text-theme mb-2">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      required
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="input-field rounded-xl border border-border-color bg-surface-theme text-text-theme"
-                      placeholder="john@example.com"
-                    />
-                  </div>
-                )}
+                <div>
+                  <label htmlFor="email" className="block text-sm font-semibold text-text-theme mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="input-field rounded-xl border border-border-color bg-surface-theme text-text-theme"
+                    placeholder="john@example.com"
+                  />
+                </div>
               </div>
               
               <div>

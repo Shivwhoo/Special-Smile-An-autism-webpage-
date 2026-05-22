@@ -1,14 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-import { logoutUser } from '../../store/slices/authSlice';
-import { Menu, X, User as UserIcon, LogOut } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { user } = useSelector((state) => state.auth);
-  const dispatch = useDispatch();
   const location = useLocation();
   const lastScrollY = useRef(0);
   const scrollTimeout = useRef(null);
@@ -43,11 +39,6 @@ const Navbar = () => {
       clearTimeout(scrollTimeout.current);
     };
   }, [rawSwing]);
-
-  const handleLogout = () => {
-    dispatch(logoutUser());
-    setIsOpen(false);
-  };
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -161,35 +152,9 @@ const Navbar = () => {
             </div>
 
             <div className="flex items-center gap-4 border-l border-border-theme/40 pl-6">
-              {user ? (
-                <div className="relative group flex items-center gap-4">
-                  <Link
-                    to="/dashboard"
-                    className="flex items-center gap-2 text-text-secondary hover:text-primary transition-colors font-medium"
-                  >
-                    <div className="p-2 bg-gray-100 dark:bg-white/10 rounded-full group-hover:bg-primary/10 transition-colors">
-                      <UserIcon className="w-5 h-5" />
-                    </div>
-                    <span>{user.name.split(' ')[0]}</span>
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="p-2 text-gray-400 hover:text-red-500 transition-colors rounded-full hover:bg-red-50 dark:hover:bg-red-500/10"
-                    aria-label="Logout"
-                  >
-                    <LogOut className="w-5 h-5" />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex gap-3">
-                  <Link to="/login" className="px-5 py-2.5 text-primary font-medium hover:bg-primary/5 rounded-xl transition-colors">
-                    Log in
-                  </Link>
-                  <Link to="/register" className="btn-primary py-2.5">
-                    Book Session
-                  </Link>
-                </div>
-              )}
+              <Link to="/book" className="btn-primary py-2.5">
+                Book Session
+              </Link>
             </div>
           </div>
 
@@ -233,40 +198,13 @@ const Navbar = () => {
               ))}
               
               <div className="mt-6 pt-6 border-t border-border-theme flex flex-col gap-3">
-                {user ? (
-                  <>
-                    <Link
-                      to="/dashboard"
-                      onClick={() => setIsOpen(false)}
-                      className="block px-3 py-3 rounded-lg text-base font-medium text-text-secondary hover:text-primary hover:bg-surface-theme/50 dark:hover:bg-white/5 flex items-center gap-2"
-                    >
-                      <UserIcon className="w-5 h-5" /> Dashboard
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-3 py-3 rounded-lg text-base font-medium text-red-600 hover:bg-red-500/10 dark:hover:bg-red-500/20 flex items-center gap-2"
-                    >
-                      <LogOut className="w-5 h-5" /> Log out
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      to="/login"
-                      onClick={() => setIsOpen(false)}
-                      className="block px-3 py-3 rounded-lg text-base font-medium text-center text-primary border border-primary/20"
-                    >
-                      Log in
-                    </Link>
-                    <Link
-                      to="/register"
-                      onClick={() => setIsOpen(false)}
-                      className="block px-3 py-3 rounded-lg text-base font-medium text-center bg-primary text-text-primary"
-                    >
-                      Book Session
-                    </Link>
-                  </>
-                )}
+                <Link
+                  to="/book"
+                  onClick={() => setIsOpen(false)}
+                  className="block px-3 py-3 rounded-lg text-base font-medium text-center bg-primary text-text-primary"
+                >
+                  Book Session
+                </Link>
               </div>
             </div>
           </motion.div>

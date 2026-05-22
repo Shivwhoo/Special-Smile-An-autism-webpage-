@@ -5,10 +5,14 @@ import { createCalendarEvent } from '../utils/googleCalendar.js';
 
 // @desc    Create new appointment & sync with Google Calendar
 // @route   POST /api/appointments
-// @access  Private
+// @access  Public (no auth required)
 export const createAppointment = async (req, res) => {
   try {
-    const { serviceId, childName, date, timeSlot, notes } = req.body;
+    const { serviceId, childName, date, timeSlot, notes, parentName, parentEmail, parentPhone } = req.body;
+
+    if (!parentName || !parentEmail) {
+      return res.status(400).json({ message: 'Parent name and email are required.' });
+    }
     
     const service = await Service.findById(serviceId);
     if (!service) {
@@ -36,7 +40,9 @@ export const createAppointment = async (req, res) => {
 
     // 2. Create the appointment in DB as confirmed and paid (payment bypassed)
     const appointment = new Appointment({
-      user: req.user._id,
+      parentName,
+      parentEmail,
+      parentPhone,
       service: service._id,
       childName,
       date,
@@ -48,17 +54,18 @@ export const createAppointment = async (req, res) => {
 
     const createdAppointment = await appointment.save();
 
-    // Populate user and service for calendar and email dispatches
+    // Populate service for calendar and email dispatches
     const populatedAppointment = await Appointment.findById(createdAppointment._id)
-      .populate('user')
       .populate('service');
 
     // 3. Create Google Calendar Event
     let googleCalendarEventId = null;
     try {
+      // Build a minimal user-like object for the calendar helper
+      const parentInfo = { name: parentName, email: parentEmail, phone: parentPhone };
       googleCalendarEventId = await createCalendarEvent(
         populatedAppointment, 
-        populatedAppointment.user, 
+        parentInfo, 
         populatedAppointment.service
       );
       if (googleCalendarEventId) {
@@ -83,12 +90,12 @@ export const createAppointment = async (req, res) => {
         try {
           await resend.emails.send({
             from: 'onboarding@resend.dev',
-            to: populatedAppointment.user.email,
+            to: parentEmail,
             subject: 'Appointment Confirmed - Special Smile Center',
             html: `
               <div style="font-family: sans-serif; color: #2C3E50; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
                 <h2 style="color: #FFB347; text-align: center; margin-top: 0;">Appointment Confirmed!</h2>
-                <p>Dear ${populatedAppointment.user.name},</p>
+                <p>Dear ${parentName},</p>
                 <p>Your booking for <strong>${populatedAppointment.service.title}</strong> at <strong>Special Smile Center</strong> has been successfully confirmed.</p>
                 
                 <div style="background-color: #FFFDF9; padding: 15px; border-radius: 8px; border: 1px solid #FFB347; margin: 20px 0;">
@@ -125,9 +132,9 @@ export const createAppointment = async (req, res) => {
               </div>
             `
           });
-          console.log(`✅ Parent confirmation email sent successfully to: ${populatedAppointment.user.email}`);
+          console.log(`✅ Parent confirmation email sent successfully to: ${parentEmail}`);
         } catch (parentEmailErr) {
-          console.warn(`⚠️ Parent email delivery failed (${populatedAppointment.user.email}):`, parentEmailErr.message || parentEmailErr);
+          console.warn(`⚠️ Parent email delivery failed (${parentEmail}):`, parentEmailErr.message || parentEmailErr);
           console.warn(`💡 Tip: Resend Sandbox only allows sending to the verified owner's email address (${adminEmail}). Verify a custom domain at resend.com to send to all clients!`);
         }
 
@@ -164,15 +171,15 @@ export const createAppointment = async (req, res) => {
                     </tr>
                     <tr>
                       <td style="padding: 6px 0; font-weight: bold;">👤 Parent Name:</td>
-                      <td style="padding: 6px 0;">${populatedAppointment.user.name}</td>
+                      <td style="padding: 6px 0;">${parentName}</td>
                     </tr>
                     <tr>
                       <td style="padding: 6px 0; font-weight: bold;">📞 Parent Phone:</td>
-                      <td style="padding: 6px 0;">${populatedAppointment.user.phone || 'N/A'}</td>
+                      <td style="padding: 6px 0;">${parentPhone || 'N/A'}</td>
                     </tr>
                     <tr>
                       <td style="padding: 6px 0; font-weight: bold;">✉️ Parent Email:</td>
-                      <td style="padding: 6px 0;">${populatedAppointment.user.email}</td>
+                      <td style="padding: 6px 0;">${parentEmail}</td>
                     </tr>
                   </table>
                 </div>
@@ -231,12 +238,17 @@ export const getBookedSlots = async (req, res) => {
   }
 };
 
-// @desc    Get user appointments
+// @desc    Get appointments by parent email
 // @route   GET /api/appointments/my
-// @access  Private
+// @access  Public (lookup by email)
 export const getMyAppointments = async (req, res) => {
   try {
-    const appointments = await Appointment.find({ user: req.user._id })
+    const { email } = req.query;
+    if (!email) {
+      return res.status(400).json({ message: 'Email parameter is required to look up appointments.' });
+    }
+
+    const appointments = await Appointment.find({ parentEmail: email })
       .populate('service')
       .sort({ date: 1 });
     res.json(appointments);

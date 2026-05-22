@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,12 +14,12 @@ import {
   Sparkles, 
   CheckCircle,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  Mail,
+  Phone
 } from 'lucide-react';
 
 const BookAppointment = () => {
-  const { user } = useSelector((state) => state.auth);
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const initialServiceId = searchParams.get('service');
 
@@ -39,9 +38,13 @@ const BookAppointment = () => {
   const [loadingSlots, setLoadingSlots] = useState(false);
 
   // Form State
+  const [parentName, setParentName] = useState('');
+  const [parentEmail, setParentEmail] = useState('');
+  const [parentPhone, setParentPhone] = useState('');
   const [childName, setChildName] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
 
   // Decorative Slot tags to show therapeutic vibes
   const ALL_SLOTS = [
@@ -164,6 +167,14 @@ const BookAppointment = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!parentName.trim()) {
+      toast.error('Please enter your name.');
+      return;
+    }
+    if (!parentEmail.trim()) {
+      toast.error('Please enter your email address.');
+      return;
+    }
     if (!selectedServiceId) {
       toast.error('Please select a service.');
       return;
@@ -184,11 +195,14 @@ const BookAppointment = () => {
         childName,
         date: selectedDate,
         timeSlot: selectedTimeSlot,
-        notes
+        notes,
+        parentName: parentName.trim(),
+        parentEmail: parentEmail.trim(),
+        parentPhone: parentPhone.trim()
       });
 
       toast.success('🎉 Appointment booked and confirmed successfully!');
-      navigate('/dashboard');
+      setBookingSuccess(true);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to complete booking.');
     } finally {
@@ -207,6 +221,55 @@ const BookAppointment = () => {
     const today = new Date();
     return year === today.getFullYear() && month === today.getMonth();
   };
+
+  // Success state after booking
+  if (bookingSuccess) {
+    return (
+      <div className="py-24 bg-bg-theme min-h-screen text-text-theme">
+        <div className="max-w-lg mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="card bg-surface-theme border border-secondary/15 rounded-3xl p-10 shadow-2xl"
+          >
+            <div className="w-20 h-20 mx-auto mb-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-10 h-10 text-green-600 dark:text-green-400" />
+            </div>
+            <h1 className="text-3xl font-extrabold font-heading mb-3">Booking Confirmed!</h1>
+            <p className="text-text-muted mb-2">
+              Your appointment has been successfully booked. A confirmation email has been sent to <strong className="text-text-theme">{parentEmail}</strong>.
+            </p>
+            <div className="mt-6 p-4 bg-primary/5 rounded-2xl border border-primary/20 text-sm text-left space-y-2">
+              <p><strong>Service:</strong> {selectedService?.title}</p>
+              <p><strong>Date:</strong> {formatDateDisplay(selectedDate)}</p>
+              <p><strong>Time:</strong> {selectedTimeSlot} (IST)</p>
+              <p><strong>Child:</strong> {childName || 'Not specified'}</p>
+            </div>
+            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => {
+                  setBookingSuccess(false);
+                  setParentName('');
+                  setParentEmail('');
+                  setParentPhone('');
+                  setChildName('');
+                  setNotes('');
+                  setSelectedDate(null);
+                  setSelectedTimeSlot('');
+                }}
+                className="flex-1 btn-primary py-3 text-sm font-bold"
+              >
+                Book Another Appointment
+              </button>
+              <a href="/dashboard" className="flex-1 btn-outline py-3 text-sm font-bold text-center border border-primary/20">
+                View My Appointments
+              </a>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-24 bg-bg-theme min-h-screen text-text-theme">
@@ -250,6 +313,54 @@ const BookAppointment = () => {
               className="card bg-surface-theme border border-secondary/15 rounded-3xl p-8"
             >
               <form onSubmit={handleSubmit} className="space-y-6">
+
+                {/* Parent Information Section */}
+                <div className="space-y-4 p-5 rounded-2xl bg-primary/5 border border-primary/15">
+                  <h3 className="text-sm font-bold text-text-theme flex items-center gap-1.5 mb-1">
+                    <User className="w-4 h-4 text-primary" /> Parent / Guardian Information
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-text-muted mb-1.5 flex items-center gap-1">
+                        <User className="w-3.5 h-3.5" /> Your Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        className="input-field py-3 rounded-xl border border-border-color bg-surface-theme text-text-theme"
+                        value={parentName}
+                        onChange={(e) => setParentName(e.target.value)}
+                        placeholder="Enter your full name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-text-muted mb-1.5 flex items-center gap-1">
+                        <Mail className="w-3.5 h-3.5" /> Email Address *
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        className="input-field py-3 rounded-xl border border-border-color bg-surface-theme text-text-theme"
+                        value={parentEmail}
+                        onChange={(e) => setParentEmail(e.target.value)}
+                        placeholder="you@example.com"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-text-muted mb-1.5 flex items-center gap-1">
+                      <Phone className="w-3.5 h-3.5" /> Phone Number (Optional)
+                    </label>
+                    <input
+                      type="tel"
+                      className="input-field py-3 rounded-xl border border-border-color bg-surface-theme text-text-theme"
+                      value={parentPhone}
+                      onChange={(e) => setParentPhone(e.target.value)}
+                      placeholder="+91 9876543210"
+                    />
+                  </div>
+                </div>
                 
                 {/* 1. Service Selection */}
                 <div>
@@ -555,10 +666,10 @@ const BookAppointment = () => {
 
                 {/* Direct Booking Notice */}
                 <div className="bg-primary/5 p-4 rounded-2xl border border-primary/20 space-y-1">
-                  <p className="font-bold text-primary text-xs uppercase tracking-wider">Payment Bypassed</p>
+                  <p className="font-bold text-primary text-xs uppercase tracking-wider">No Login Required</p>
                   <p className="font-bold text-text-theme text-sm">Direct Confirmation Booking</p>
                   <p className="text-xs text-text-muted leading-relaxed">
-                    Razorpay has been fully removed. Your booking will confirm instantly and sync with Google Calendar.
+                    Simply fill in your details and book instantly. A confirmation email will be sent to you and to Dr. Lovely Priya.
                   </p>
                 </div>
 

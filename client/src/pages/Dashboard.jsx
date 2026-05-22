@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api/axios';
 import { 
@@ -15,22 +14,20 @@ import {
   Plus, 
   Activity,
   Heart,
-  Printer
+  Printer,
+  Mail,
+  Search
 } from 'lucide-react';
 
 const Dashboard = () => {
-  const { user } = useSelector((state) => state.auth);
+  const [lookupEmail, setLookupEmail] = useState('');
+  const [parentName, setParentName] = useState('');
+  const [isLookedUp, setIsLookedUp] = useState(false);
   const [appointments, setAppointments] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Growth Garden & Milestone States
-  const [milestones, setMilestones] = useState(() => {
-    const saved = localStorage.getItem(`ssc-milestones-${user?._id}`);
-    return saved ? JSON.parse(saved) : [
-      { id: '1', text: 'Practiced sensory deep breaths at home', date: 'Yesterday' },
-      { id: '2', text: 'Successfully stacked 5 block levels without anxiety', date: '2 days ago' }
-    ];
-  });
+  const [milestones, setMilestones] = useState([]);
   const [newMilestoneText, setNewMilestoneText] = useState('');
 
   // Star Jar state
@@ -53,27 +50,41 @@ const Dashboard = () => {
     { key: 'social', title: 'Social & Play Connection', text: 'How comfortably does your child cooperate or share toys during small-group play?' }
   ];
 
+  // Load milestones from localStorage when email changes
   useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        const { data } = await api.get('/appointments/my');
-        setAppointments(data);
-      } catch (error) {
-        console.error('Failed to fetch appointments', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (user) {
-      fetchAppointments();
+    if (isLookedUp && lookupEmail) {
+      const saved = localStorage.getItem(`ssc-milestones-${lookupEmail}`);
+      setMilestones(saved ? JSON.parse(saved) : [
+        { id: '1', text: 'Practiced sensory deep breaths at home', date: 'Yesterday' },
+        { id: '2', text: 'Successfully stacked 5 block levels without anxiety', date: '2 days ago' }
+      ]);
     }
-  }, [user]);
+  }, [isLookedUp, lookupEmail]);
+
+  const handleLookup = async (e) => {
+    e.preventDefault();
+    if (!lookupEmail.trim()) return;
+
+    setLoading(true);
+    try {
+      const { data } = await api.get(`/appointments/my?email=${encodeURIComponent(lookupEmail.trim())}`);
+      setAppointments(data);
+      // Try to get parent name from the first appointment
+      if (data.length > 0 && data[0].parentName) {
+        setParentName(data[0].parentName);
+      }
+      setIsLookedUp(true);
+    } catch (error) {
+      console.error('Failed to fetch appointments', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Save milestones to LocalStorage
   const saveMilestones = (updated) => {
     setMilestones(updated);
-    localStorage.setItem(`ssc-milestones-${user?._id}`, JSON.stringify(updated));
+    localStorage.setItem(`ssc-milestones-${lookupEmail}`, JSON.stringify(updated));
   };
 
   const handleAddMilestone = (e) => {
@@ -200,7 +211,7 @@ const Dashboard = () => {
             <h1>Certificate of Bloom</h1>
             <h2>Special Smile Center</h2>
             <p class="presented">This certificate is proudly awarded to</p>
-            <h3 class="name">${user?.name || 'A Brave Learner'}</h3>
+            <h3 class="name">${parentName || 'A Brave Learner'}</h3>
             <p class="reason">
               For exceptional perseverance, learning curiosity, and joyful milestone achievements in pediatric developmental therapy & occupational milestones. Dr. Lovely Priya celebrates your brightness!
             </p>
@@ -226,11 +237,59 @@ const Dashboard = () => {
     printWindow.document.close();
   };
 
-  if (loading) {
+  // Email lookup screen (shown before dashboard data is loaded)
+  if (!isLookedUp) {
     return (
-      <div className="pt-32 text-center text-text-theme bg-bg-theme min-h-screen flex flex-col items-center justify-center gap-3">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        <p className="text-sm font-semibold">Tending to your Growth Garden...</p>
+      <div className="py-24 bg-bg-theme min-h-screen text-text-theme">
+        <div className="max-w-lg mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary flex items-center justify-center gap-1.5 mb-2">
+              <Sparkles className="w-4 h-4 animate-spin-slow" /> Parent Growth Panel
+            </span>
+            <h1 className="text-3xl md:text-5xl font-extrabold font-heading tracking-tight">
+              Your Dashboard 🌸
+            </h1>
+            <p className="text-sm text-text-muted mt-3">Enter the email you used to book your appointment to view your growth panel.</p>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="card bg-surface-theme border border-primary/20 rounded-3xl p-8 shadow-xl"
+          >
+            <form onSubmit={handleLookup} className="space-y-5">
+              <div>
+                <label className="block text-sm font-semibold text-text-theme mb-2 flex items-center gap-1.5">
+                  <Mail className="w-4 h-4 text-primary" /> Email Address
+                </label>
+                <input
+                  type="email"
+                  required
+                  className="input-field py-3.5 rounded-xl border border-border-color bg-surface-theme text-text-theme w-full"
+                  value={lookupEmail}
+                  onChange={(e) => setLookupEmail(e.target.value)}
+                  placeholder="Enter the email used for booking"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full btn-primary py-3.5 text-sm font-bold shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Looking up...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-4 h-4" /> View My Dashboard
+                  </>
+                )}
+              </button>
+            </form>
+          </motion.div>
+        </div>
       </div>
     );
   }
@@ -260,17 +319,17 @@ const Dashboard = () => {
               <Sparkles className="w-4 h-4 animate-spin-slow" /> Parent Growth Panel
             </span>
             <h1 className="text-3xl md:text-5xl font-extrabold font-heading tracking-tight">
-              Welcome, {user?.name.split(' ')[0]} 🌸
+              Welcome{parentName ? `, ${parentName.split(' ')[0]}` : ''} 🌸
             </h1>
             <p className="text-sm text-text-muted mt-1">Nurturing your child's capabilities, day by day.</p>
           </div>
           <div className="bg-surface-theme/80 border border-primary/20 px-5 py-3.5 rounded-2xl shadow-sm backdrop-blur-sm flex items-center gap-3">
             <div className="p-2.5 bg-primary/10 rounded-xl text-primary">
-              <UserIcon className="w-5 h-5" />
+              <Mail className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] text-text-muted font-bold uppercase">Account Access</p>
-              <p className="text-sm font-semibold leading-tight mt-0.5">{user?.email}</p>
+              <p className="text-[10px] text-text-muted font-bold uppercase">Viewing Dashboard For</p>
+              <p className="text-sm font-semibold leading-tight mt-0.5">{lookupEmail}</p>
             </div>
           </div>
         </div>
@@ -427,12 +486,12 @@ const Dashboard = () => {
           
           {/* Left/Middle: Appointments */}
           <div className="lg:col-span-2 card bg-surface-theme border border-border-color rounded-3xl p-6">
-            <h2 className="text-xl font-bold font-heading text-text-theme mb-6">Upcoming Appointments</h2>
+            <h2 className="text-xl font-bold font-heading text-text-theme mb-6">Your Appointments</h2>
             
             {appointments.length === 0 ? (
               <div className="text-center py-12 bg-secondary/5 rounded-2xl border border-dashed border-secondary/20">
                 <Calendar className="w-12 h-12 text-secondary/40 mx-auto mb-4" />
-                <p className="text-text-muted text-sm mb-4">You have no upcoming appointments booked.</p>
+                <p className="text-text-muted text-sm mb-4">No appointments found for this email.</p>
                 <a href="/book" className="btn-secondary inline-flex text-xs">Book a Session</a>
               </div>
             ) : (
